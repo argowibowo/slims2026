@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistem Informasi Rumah Sakit</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; display: flex; background: #f4f6f8; }
+        .sidebar { width: 230px; background: #0077b6; color: white; height: 100vh; padding: 20px; position: fixed; }
+        .sidebar h2 { text-align: center; margin-bottom: 30px; }
+        .sidebar a.nav-link { display: block; color: white; text-decoration: none; padding: 8px; border-radius: 5px; margin-bottom: 10px; cursor: pointer; }
+        .sidebar a.nav-link:hover, .sidebar a.nav-link.active { background: #0096c7; }
+        .content { margin-left: 250px; padding: 30px; flex: 1; width: calc(100% - 250px); }
+        h2, h3 { color: #0077b6; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #0077b6; color: white; }
+        form { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 0 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        input, select, textarea { padding: 8px; margin: 5px 0; width: 100%; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { background: #0077b6; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0096c7; }
+        .form-row { display: flex; gap: 20px; }
+        .form-col { flex: 1; }
+        .antrian-container {
+            background: #111; color: white; font-family: 'Segoe UI', sans-serif;
+            padding: 20px; border-radius: 20px; margin-top: 40px;
+        }
+        .header-rs {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #004d40; padding: 10px 20px; border-radius: 10px;
+        }
+        .header-rs h2 { margin: 0; color: #fff; }
+        .antrian-aktif {
+            display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(to right, #e53935, #b71c1c); padding: 25px;
+            border-radius: 15px; margin-top: 20px; text-align: center;
+        }
+        .antrian-aktif .nomor { font-size: 70px; font-weight: bold; }
+        .antrian-aktif .loket { font-size: 50px; font-weight: bold; }
+        .daftar-loket { display: flex; justify-content: space-around; margin-top: 20px; }
+        .kotak-loket {
+            background: #1b5e20; color: #fff; border-radius: 15px;
+            text-align: center; flex: 1; margin: 5px; padding: 20px;
+        }
+        .kotak-loket h3 { font-size: 40px; margin: 0; color: #fff; }
+        .kotak-loket p { font-size: 20px; margin: 5px 0 0 0; }
+        .dashboard-cards { display:flex; gap:20px; margin-top:30px; }
+        .card { background:white; padding:20px; border-radius:10px; }
+        .card h2 { margin-top: 0; }
+        .card p { font-size:28px; color:#0077b6; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>SILK</h2>
+    <a class="nav-link active" data-page="page-dashboard">Dashboard</a>
+    <a class="nav-link" data-page="page-pasien">Data Pasien</a>
+    <a class="nav-link" data-page="page-registrasi">Registrasi RM & Antrian</a>
+    <a class="nav-link" data-page="page-daftar-antrian">Daftar Antrian</a>
+    <a class="nav-link" data-page="page-monitor-antrian">Monitor Antrian</a>
+</div>
+
+<div class="content">
+    
+    <div id="page-dashboard" class="page-content">
+        <h1>Selamat Datang di Sistem Informasi Rumah Sakit</h1>
+        <p>Gunakan menu di sebelah kiri untuk mengelola data.</p>
+        <div class="dashboard-cards">
+            <div class="card">
+                <h2>Total Pasien</h2>
+                <p id="stats-total-pasien">0</p>
+            </div>
+            <div class="card">
+                <h2>Total Antrian (Hari Ini)</h2>
+                <p id="stats-total-antrian">0</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="page-pasien" class="page-content" style="display:none;">
+        <h2>📋 Data Pasien</h2>
+        <form id="form-tambah-pasien">
+            <h3>Tambah Pasien Baru</h3>
+            <div class="form-row">
+                <div class="form-col">
+                    <input type="text" id="pasien-nik" placeholder="NIK" required>
+                    <input type="text" id="pasien-nama" placeholder="Nama Pasien" required>
+                    <select id="pasien-jk" required>
+                        <option value="">-- Jenis Kelamin --</option>
+                        <option value="L">Laki-Laki</option>
+                        <option value="P">Perempuan</option>
+                    </select>
+                </div>
+                <div class="form-col">
+                    <label for="pasien-tgl-lahir" style="font-size: 0.8em; color: #555;">Tanggal Lahir</label>
+                    <input type="date" id="pasien-tgl-lahir" required>
+                    <input type="text" id="pasien-telp" placeholder="No. Telepon">
+                    <select id="pasien-status" required>
+                        <option value="Umum">Umum</option>
+                        <option value="BPJS">BPJS</option>
+                    </select>
+                </div>
+            </div>
+            <textarea id="pasien-alamat" placeholder="Alamat"></textarea>
+            <button type="submit" name="tambah_pasien">Tambah Pasien</button>
+        </form>
+        
+        <h3>Daftar Pasien</h3>
+        <table id="table-pasien">
+            <thead>
+                <tr>
+                    <th>ID RM</th><th>NIK</th><th>Nama</th><th>JK</th><th>Tgl Lahir</th><th>Alamat</th><th>No. Telp</th><th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="table-pasien-body">
+                <tr><td colspan="8">Memuat data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="page-registrasi" class="page-content" style="display:none;">
+        <h2>📝 Registrasi Kunjungan RM & Antrian</h2>
+        <form id="form-registrasi">
+            <div class="form-row">
+                <div class="form-col">
+                    <label>Pilih Pasien (dari Tabel Pasien)</label>
+                    <select id="reg-pasien" required>
+                        <option value="">-- Memuat Pasien... --</option>
+                    </select>
+                </div>
+                <div class="form-col">
+                    <label>Jenis Antrian (Sesuai Catatan)</label>
+                    <select id="reg-jenis-antrian" required>
+                        <option value="Poliklinik">Poliklinik (Rawat Jalan)</option>
+                        <option value="Farmasi">Farmasi (Ambil Obat)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row" style="margin-top: 15px;">
+                <div class="form-col">
+                    <label>Pilih Poli Tujuan (Tabel Poli)</label>
+                    <select id="reg-poli" required>
+                        <option value="">-- Memuat Poli... --</option>
+                    </select>
+                </div>
+                <div class="form-col">
+                    <label>Pilih Dokter (Tabel Dokter -> untuk RM)</label>
+                    <select id="reg-dokter" required>
+                        <option value="">-- Memuat Dokter... --</option>
+                    </select>
+                </div>
+            </div>
+             <div class="form-row" style="margin-top: 15px;">
+                <div class="form-col">
+                    <label>Pilih Staff (Tabel Staff -> untuk Antrian)</label>
+                    <select id="reg-staff" required>
+                        <option value="">-- Memuat Staff... --</option>
+                    </select>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 20px;">Pemeriksaan Awal (Tabel RM)</h3>
+            <div class="form-row">
+                <div class="form-col">
+                    <label>Tekanan Darah (cth: 120/80)</label>
+                    <input type="text" id="reg-tekanan-darah">
+                </div>
+                <div class="form-col">
+                    <label>Suhu Tubuh (°C) (cth: 36.5)</label>
+                    <input type="text" id="reg-suhu">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-col">
+                    <label>Tinggi Badan (cm)</label>
+                    <input type="text" id="reg-tinggi">
+                </div>
+                <div class="form-col">
+                    <label>Berat Badan (kg)</label>
+                    <input type="text" id="reg-berat">
+                </div>
+            </div>
+            <label>Keluhan (Bisa 5 atau lebih)</label>
+            <textarea id="reg-keluhan" placeholder="Tuliskan semua keluhan..."></textarea>
+            
+            <button type="submit">Daftarkan & Buat Antrian</button>
+        </form>
+    </div>
+
+    <div id="page-daftar-antrian" class="page-content" style="display:none;">
+        <h2>Daftar Antrian</h2>
+        <p>Halaman ini untuk mengelola antrian (Update status, panggil, dll)</p>
+        <table id="table-antrian">
+            <thead>
+                <tr>
+                    <th>ID</th><th>Nama Pasien</th><th>Poli</th><th>Staff</th><th>No. Antrian</th><th>Jenis</th><th>Status</th><th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="table-antrian-body">
+                <tr><td colspan="8">Memuat data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div id="page-monitor-antrian" class="page-content" style="display:none;">
+        <div class="antrian-container" id="antrian-section">
+            <div class="header-rs">
+                <h2> SILK </h2>
+                <div><span id="tanggal"></span> | <span id="jam"></span></div>
+            </div>
+            <div class="antrian-aktif">
+                <div>
+                    <h3>MEMANGGIL ANTRIAN</h3>
+                    <div class="nomor" id="monitor-nomor-aktif">-</div>
+                </div>
+                <div><span style="font-size: 50px;">➡️</span></div>
+                <div>
+                    <h3>LOKET</h3>
+                    <div class="loket" id="monitor-loket-aktif">-</div>
+                </div>
+            </div>
+            <div class="daftar-loket" id="monitor-daftar-loket">
+                </div>
+        </div>
+    </div>
+    
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // ===============================================
+        // KONFIGURASI DAN VARIABEL GLOBAL
+        // ===============================================
+        
+        const API_BASE_URL = ''; // Tetap pakai 'index.php/' untuk keamanan
+        
+        const allPages = document.querySelectorAll('.page-content');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        // ===============================================
+        // FUNGSI NAVIGASI
+        // ===============================================
+        
+        function showPage(pageId) {
+            allPages.forEach(page => page.style.display = 'none');
+            document.getElementById(pageId).style.display = 'block';
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('data-page') === pageId) {
+                    link.classList.add('active');
+                }
+            });
+
+            if (pageId === 'page-dashboard') loadDashboardStats();
+            if (pageId === 'page-pasien') loadPasien();
+            if (pageId === 'page-registrasi') loadRegistrasiForm();
+            if (pageId === 'page-daftar-antrian') loadDaftarAntrian();
+            if (pageId === 'page-monitor-antrian') loadMonitorAntrian();
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const pageId = link.getAttribute('data-page');
+                showPage(pageId);
+            });
+        });
+
+        // ===============================================
+        // FUNGSI API (AJAX / XHR)
+        // ===============================================
+        
+        function ajax(method, url, callback, data = null) {
+            const xhr = new XMLHttpRequest();
+            xhr.open(method, API_BASE_URL + url);
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            xhr.setRequestHeader('Accept', 'application/json');
+            
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    callback(null, JSON.parse(xhr.responseText));
+                } else {
+                    console.error(`Error ${xhr.status}: ${xhr.statusText}`);
+                    callback(new Error(xhr.statusText), null);
+                }
+            };
+            xhr.onerror = function() {
+                console.error("Network error");
+                callback(new Error("Network error"), null);
+            };
+            
+            xhr.send(data ? JSON.stringify(data) : null);
+        }
+
+        // ===============================================
+        // FUNGSI UNTUK TIAP HALAMAN
+        // ===============================================
+
+        // ----- HALAMAN DASHBOARD -----
+        function loadDashboardStats() {
+            ajax('GET', 'dashboard-stats', (err, data) => {
+                if (err) return;
+                document.getElementById('stats-total-pasien').innerText = data.total_pasien;
+                document.getElementById('stats-total-antrian').innerText = data.total_antrian;
+            });
+        }
+
+        // ----- HALAMAN DATA PASIEN -----
+        const formTambahPasien = document.getElementById('form-tambah-pasien');
+        const tablePasienBody = document.getElementById('table-pasien-body');
+        
+        function loadPasien() {
+            tablePasienBody.innerHTML = '<tr><td colspan="8">Memuat data...</td></tr>';
+            ajax('GET', 'pasien', (err, data) => {
+                if (err) {
+                    tablePasienBody.innerHTML = '<tr><td colspan="8">Gagal memuat data.</td></tr>';
+                    return;
+                }
+                tablePasienBody.innerHTML = '';
+                if (data.length === 0) {
+                    tablePasienBody.innerHTML = '<tr><td colspan="8">Tidak ada data pasien.</td></tr>';
+                    return;
+                }
+                data.forEach(p => {
+                    tablePasienBody.innerHTML += `
+                        <tr>
+                            <td>${p.id_rm}</td>
+                            <td>${p.nik}</td>
+                            <td>${p.nama_pasien}</td>
+                            <td>${p.jenis_kelamin}</td>
+                            <td>${p.tanggal_lahir}</td>
+                            <td>${p.alamat}</td>
+                            <td>${p.no_telp}</td>
+                            <td>${p.status_pasien}</td>
+                        </tr>`;
+                });
+            });
+        }
+        
+        formTambahPasien.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const data = {
+                nik: document.getElementById('pasien-nik').value,
+                nama_pasien: document.getElementById('pasien-nama').value,
+                jenis_kelamin: document.getElementById('pasien-jk').value,
+                tanggal_lahir: document.getElementById('pasien-tgl-lahir').value,
+                alamat: document.getElementById('pasien-alamat').value,
+                no_telp: document.getElementById('pasien-telp').value,
+                status_pasien: document.getElementById('pasien-status').value,
+            };
+
+            // Validasi input
+            if (!data.nik || data.nik.length < 16) {
+                alert('NIK harus diisi dan minimal 16 digit!');
+                return;
+            }
+            if (!data.nama_pasien || data.nama_pasien.length < 3) {
+                alert('Nama pasien harus diisi dan minimal 3 karakter!');
+                return;
+            }
+            if (!data.jenis_kelamin) {
+                alert('Jenis kelamin harus dipilih!');
+                return;
+            }
+
+            ajax('POST', 'pasien', (err, result) => {
+                if (err) {
+                    console.error('Error:', err);
+                    alert('Gagal menambah pasien! Detail error: ' + (err.message || 'Unknown error'));
+                    return;
+                }
+                if (!result.success) {
+                    alert('Gagal menambah pasien! ' + (result.message || 'Unknown error'));
+                    return;
+                }
+                alert('Pasien baru berhasil ditambahkan!');
+                formTambahPasien.reset();
+                loadPasien();
+            }, data);
+        });
+
+        // ----- HALAMAN REGISTRASI -----
+        const formRegistrasi = document.getElementById('form-registrasi');
+        const selectRegPasien = document.getElementById('reg-pasien');
+        const selectRegPoli = document.getElementById('reg-poli');
+        const selectRegStaff = document.getElementById('reg-staff');
+        const selectRegDokter = document.getElementById('reg-dokter');
+        
+        let loadedPasien = false;
+        let loadedFormData = false;
+
+        function loadRegistrasiForm() {
+            if (!loadedPasien) {
+                ajax('GET', 'pasien', (err, data) => {
+                    if (err) return;
+                    selectRegPasien.innerHTML = '<option value="">-- Pilih Pasien --</option>';
+                    data.forEach(p => {
+                        selectRegPasien.innerHTML += `<option value="${p.id_rm}">${p.nama_pasien} (NIK: ${p.nik})</option>`;
+                    });
+                    loadedPasien = true;
+                });
+            }
+            if (!loadedFormData) {
+                ajax('GET', 'form-data', (err, data) => {
+                    if (err) return;
+                    // Isi Poli
+                    selectRegPoli.innerHTML = '<option value="">-- Pilih Poli --</option>';
+                    data.poli.forEach(p => {
+                        selectRegPoli.innerHTML += `<option value="${p.id_poli}">${p.nama_poli}</option>`;
+                    });
+                    // FIX: Isi Staff (menggunakan 's.nama')
+                    selectRegStaff.innerHTML = '<option value="">-- Pilih Staff --</option>';
+                    data.staff.forEach(s => {
+                        selectRegStaff.innerHTML += `<option value="${s.id_staff}">${s.nama}</option>`;
+                    });
+                    // FIX: Isi Dokter
+                    selectRegDokter.innerHTML = '<option value="">-- Pilih Dokter --</option>';
+                    data.dokter.forEach(d => {
+                        selectRegDokter.innerHTML += `<option value="${d.id_dokter}">${d.nama_dokter}</option>`;
+                    });
+                    loadedFormData = true;
+                });
+            }
+        }
+        
+        formRegistrasi.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const data = {
+                id_rm_pasien: document.getElementById('reg-pasien').value,
+                jenis_antrian: document.getElementById('reg-jenis-antrian').value,
+                id_poli: document.getElementById('reg-poli').value,
+                id_staff: document.getElementById('reg-staff').value, // Untuk tabel antrian
+                id_dokter: document.getElementById('reg-dokter').value, // Untuk tabel rm
+                tekanan_darah: document.getElementById('reg-tekanan-darah').value,
+                suhu_tubuh: document.getElementById('reg-suhu').value, // FIX: nama field
+                tinggi_badan: document.getElementById('reg-tinggi').value,
+                berat_badan: document.getElementById('reg-berat').value,
+                keluhan: document.getElementById('reg-keluhan').value, // FIX: Hilangkan gejala
+            };
+            
+            ajax('POST', 'registrasi', (err, result) => {
+                if (err) return alert('Gagal mendaftarkan pasien!');
+                alert(`Registrasi sukses!\nNomor Antrian: ${result.nomor_antrian}`);
+                formRegistrasi.reset();
+            }, data);
+        });
+
+        // ----- HALAMAN DAFTAR ANTRIAN -----
+        const tableAntrianBody = document.getElementById('table-antrian-body');
+        
+        function loadDaftarAntrian() {
+            tableAntrianBody.innerHTML = '<tr><td colspan="8">Memuat data...</td></tr>';
+            ajax('GET', 'antrian', (err, data) => {
+                if (err) {
+                    tableAntrianBody.innerHTML = '<tr><td colspan="8">Gagal memuat data.</td></tr>';
+                    return;
+                }
+                tableAntrianBody.innerHTML = '';
+                if (data.length === 0) {
+                    tableAntrianBody.innerHTML = '<tr><td colspan="8">Tidak ada antrian.</td></tr>';
+                    return;
+                }
+                data.forEach(a => {
+                    // FIX: Ambil 'a.nama' (dari staff)
+                    tableAntrianBody.innerHTML += `
+                        <tr>
+                            <td>${a.id_antrian}</td>
+                            <td>${a.nama_pasien}</td>
+                            <td>${a.nama_poli}</td>
+                            <td>${a.nama}</td> 
+                            <td>${a.nomor_antrian}</td>
+                            <td>${a.jenis_antrian}</td>
+                            <td>
+                                <select class="status-antrian" data-id="${a.id_antrian}">
+                                    <option value="Menunggu" ${a.status_antrian === 'Menunggu' ? 'selected' : ''}>Menunggu</option>
+                                    <option value="Dipanggil" ${a.status_antrian === 'Dipanggil' ? 'selected' : ''}>Dipanggil</option>
+                                    <option value="Selesai" ${a.status_antrian === 'Selesai' ? 'selected' : ''}>Selesai</option>
+                                </select>
+                            </td>
+                            <td>
+                                <button class="btn-update-status" data-id="${a.id_antrian}">Update</button>
+                            </td>
+                        </tr>`;
+                });
+            });
+        }
+        
+        tableAntrianBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-update-status')) {
+                const id = e.target.getAttribute('data-id');
+                const select = document.querySelector(`.status-antrian[data-id="${id}"]`);
+                const status = select.value;
+                
+                // FIX: Kirim 'status_antrian'
+                ajax('PUT', `antrian/${id}`, (err, result) => {
+                    if (err) return alert('Gagal update status!');
+                    alert('Status berhasil diupdate.');
+                    loadDaftarAntrian();
+                }, { status_antrian: status });
+            }
+        });
+
+        // ----- HALAMAN MONITOR ANTRIAN -----
+        const monitorNomor = document.getElementById('monitor-nomor-aktif');
+        const monitorLoket = document.getElementById('monitor-loket-aktif');
+        const monitorDaftarLoket = document.getElementById('monitor-daftar-loket');
+        const elTanggal = document.getElementById('tanggal');
+        const elJam = document.getElementById('jam');
+        
+        function loadMonitorAntrian() {
+            ajax('GET', 'monitor-antrian', (err, data) => {
+                if (err) return;
+                
+                if (data.aktif) {
+                    monitorNomor.innerText = data.aktif.nomor_antrian || '-';
+                    monitorLoket.innerText = data.aktif.nama_poli || '-';
+                } else {
+                    monitorNomor.innerText = '-';
+                    monitorLoket.innerText = '-';
+                }
+                
+                monitorDaftarLoket.innerHTML = '';
+                if (data.loket && data.loket.length > 0) {
+                    data.loket.forEach(l => {
+                        monitorDaftarLoket.innerHTML += `
+                            <div class="kotak-loket">
+                                <h3>${l.nomor_terakhir}</h3>
+                                <p>LOKET ${l.nama_poli.toUpperCase()}</p>
+                            </div>`;
+                    });
+                } else {
+                    monitorDaftarLoket.innerHTML = '<p style="color:white; text-align:center; width:100%;">Belum ada antrian</p>';
+                }
+            });
+        }
+        
+        function updateWaktu() {
+            const now = new Date();
+            elTanggal.innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            elJam.innerText = now.toLocaleTimeString('id-ID');
+        }
+        setInterval(updateWaktu, 1000);
+        updateWaktu();
+        setInterval(loadMonitorAntrian, 5000);
+
+        // ===============================================
+        // INISIALISASI
+        // ===============================================
+        showPage('page-dashboard');
+        
+    });
+</script>
+</body>
+</html>

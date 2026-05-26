@@ -1,0 +1,12 @@
+composer require slim/slim:"^4.0"
+composer require slim/psr7
+composer require illuminate/database
+
+composer create-project slim/slim-skeleton my-app
+
+$app->get('/rekammedis', function (Request $request, Response $response) {
+        $result = DB::table('rekam_medis')->get();
+        $response->getBody()->write(json_encode($result));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+);
