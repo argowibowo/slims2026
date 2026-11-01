@@ -28,7 +28,7 @@
         "dompdf/dompdf": "^3.1",
         "firebase/php-jwt": "^5.5",
         "illuminate/database": "^12.28",
-        "monolog/monolog": "^2.8",
+        "monolog/monolog": "^3.12",
         "php-di/php-di": "^6.4",
         "respect/validation": "*",
         "slim/psr7": "^1.5",
